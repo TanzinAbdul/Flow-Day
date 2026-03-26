@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Flowday — Daily Routine OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   FLOWDAY — Design System
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  --bg:           #080b10;
+  --bg2:          #0d1117;
+  --surface:      #111620;
+  --surface2:     #171d2b;
+  --surface3:     #1e2638;
+  --border:       rgba(255,255,255,0.06);
+  --border2:      rgba(255,255,255,0.10);
+  --text:         #e2e8f4;
+  --text-dim:     #8892a4;
+  --text-muted:   #4d5668;
+  --accent:       #4f9cf9;
+  --accent-glow:  rgba(79,156,249,0.2);
+  --green:        #34d399;
+  --purple:       #a78bfa;
+  --orange:       #fb923c;
+  --red:          #f87171;
+  --yellow:       #fbbf24;
+  --cyan:         #22d3ee;
+  --pink:         #f472b6;
+  --radius:       14px;
+  --radius-sm:    9px;
+  --radius-xs:    6px;
+  --shadow:       0 20px 60px rgba(0,0,0,0.5);
+  --shadow-sm:    0 4px 20px rgba(0,0,0,0.3);
+  --font:         'Sora', system-ui, sans-serif;
+  --mono:         'JetBrains Mono', monospace;
+  --ease:         cubic-bezier(0.4,0,0.2,1);
+  --t:            0.2s;
+}
+[data-theme="light"] {
+  --bg:           #f4f6fb;
+  --bg2:          #edf0f7;
+  --surface:      #ffffff;
+  --surface2:     #f0f3fa;
+  --surface3:     #e4e9f4;
+  --border:       rgba(0,0,0,0.07);
+  --border2:      rgba(0,0,0,0.12);
+  --text:         #111827;
+  --text-dim:     #4b5563;
+  --text-muted:   #9ca3af;
+  --accent:       #2563eb;
+  --accent-glow:  rgba(37,99,235,0.12);
+  --shadow:       0 20px 60px rgba(0,0,0,0.10);
+  --shadow-sm:    0 4px 20px rgba(0,0,0,0.06);
+}
+
+/* ── Reset ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background var(--t),color var(--t)}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:var(--font)}
+::selection{background:var(--accent);color:#fff}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+a{color:inherit;text-decoration:none}
+svg{flex-shrink:0}
+
+/* ── App Shell ── */
+.app{display:flex;flex-direction:column;min-height:100vh;max-width:1400px;margin:0 auto;padding:0 20px 60px}
+
+/* ══════════════════════════════════════════════════════════════
+   HEADER
+   ══════════════════════════════════════════════════════════════ */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 0 16px;gap:16px;flex-wrap:wrap;
+}
+.header-left{display:flex;flex-direction:column;gap:2px}
+.brand{
+  font-size:1.35rem;font-weight:800;letter-spacing:-0.04em;
+  display:flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--purple) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.brand-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  flex-shrink:0;
+  -webkit-text-fill-color:unset;
+}
+.date-display{
+  font-size:0.78rem;font-weight:500;color:var(--text-dim);
+  letter-spacing:0.01em;display:flex;align-items:center;gap:6px;
+}
+.date-display .live-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(0.8)}}
+
+.header-right{display:flex;align-items:center;gap:8px}
+.clock-pill{
+  font-family:var(--mono);font-size:0.75rem;font-weight:500;
+  color:var(--text-dim);background:var(--surface);
+  border:1px solid var(--border);border-radius:20px;
+  padding:5px 12px;letter-spacing:0.08em;
+}
+.icon-btn{
+  width:36px;height:36px;border-radius:var(--radius-sm);
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text-dim);
+  display:flex;align-items:center;justify-content:center;
+  transition:all var(--t) var(--ease);
+}
+.icon-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.icon-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Reality Mode banner */
+.reality-banner{
+  display:none;align-items:center;gap:10px;
+  background:linear-gradient(135deg,rgba(79,156,249,0.12),rgba(167,139,250,0.12));
+  border:1px solid rgba(79,156,249,0.25);
+  border-radius:var(--radius);padding:12px 16px;
+  margin-bottom:16px;font-size:0.82rem;
+  animation:slideDown .3s var(--ease);
+}
+.reality-banner.show{display:flex}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.reality-task{
+  font-weight:700;color:var(--accent);
+  font-size:0.88rem;
+}
+.reality-label{color:var(--text-dim)}
+.reality-progress{
+  margin-left:auto;display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:0.72rem;color:var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DAY NAVIGATION
+   ══════════════════════════════════════════════════════════════ */
+.day-nav{
+  display:flex;align-items:center;gap:6px;
+  margin-bottom:18px;overflow-x:auto;
+  padding-bottom:2px;
+  scrollbar-width:none;
+}
+.day-nav::-webkit-scrollbar{display:none}
+.day-nav-arrow{
+  width:32px;height:32px;border-radius:var(--radius-xs);
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text-dim);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all var(--t) var(--ease);
+}
+.day-nav-arrow:hover{background:var(--surface2);color:var(--text)}
+.day-tabs{display:flex;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none}
+.day-tabs::-webkit-scrollbar{display:none}
+.day-tab{
+  flex-shrink:0;padding:6px 14px;border-radius:var(--radius-xs);
+  background:transparent;border:1px solid transparent;
+  color:var(--text-muted);font-size:0.78rem;font-weight:600;
+  letter-spacing:0.02em;transition:all var(--t) var(--ease);
+  position:relative;white-space:nowrap;
+}
+.day-tab:hover{color:var(--text-dim);background:var(--surface)}
+.day-tab.active{
+  background:var(--surface2);border-color:var(--border2);
+  color:var(--text);
+}
+.day-tab.active::after{
+  content:'';position:absolute;bottom:-1px;left:20%;right:20%;
+  height:2px;background:var(--accent);border-radius:1px;
+}
+.day-tab.today .day-tab-dot{
+  position:absolute;top:4px;right:4px;
+  width:4px;height:4px;border-radius:50%;background:var(--green);
+}
+.day-tab-hours{
+  display:block;font-size:0.62rem;font-weight:400;
+  color:var(--text-muted);margin-top:1px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TIMELINE
+   ══════════════════════════════════════════════════════════════ */
+.timeline-section{margin-bottom:4px}
+.section-label{
+  font-size:0.62rem;font-weight:700;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--text-muted);
+  margin-bottom:8px;display:flex;align-items:center;gap:6px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.tl-ticks{
+  display:flex;position:relative;height:16px;margin-bottom:4px;
+}
+.tl-tick{
+  position:absolute;transform:translateX(-50%);
+  font-family:var(--mono);font-size:0.58rem;font-weight:500;
+  color:var(--text-muted);top:6px;
+}
+.tl-tick::before{
+  content:'';position:absolute;top:-6px;left:50%;
+  transform:translateX(-50%);width:1px;height:4px;
+  background:var(--border2);
+}
+
+.tl-outer{
+  position:relative;border-radius:16px;overflow:hidden;
+  box-shadow:0 0 0 1px var(--border),var(--shadow-sm);
+  overflow-x:auto;
+}
+.tl-daylight{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(to right,
+    #050510 0%,#0c0820 5%,#1a0d3e 8%,
+    #c45c2e 11%,#e8853c 14%,#6fafd8 19%,
+    #5a9fd4 35%,#4d90d0 55%,
+    #e07839 76%,#c44a1e 82%,
+    #1a0d3e 87%,#050510 100%);
+  opacity:0.15;
+}
+[data-theme="light"] .tl-daylight{opacity:0.22}
+.tl-bar{
+  display:flex;position:relative;z-index:1;
+  height:68px;min-width:100%;width:max-content;
+}
+.tl-seg{
+  height:100%;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;cursor:pointer;
+  transition:filter var(--t),transform 0.15s;
+  user-select:none;
+}
+.tl-seg:hover{filter:brightness(1.18);z-index:5}
+.tl-seg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,0.10) 0%,transparent 60%);
+  pointer-events:none;
+}
+.tl-seg-label{
+  font-size:0.62rem;font-weight:700;
+  color:rgba(255,255,255,0.92);
+  text-shadow:0 1px 4px rgba(0,0,0,0.6);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  padding:0 6px;pointer-events:none;letter-spacing:0.03em;
+}
+/* Resize handle */
+.resize-handle{
+  position:absolute;right:0;top:0;bottom:0;width:6px;
+  cursor:ew-resize;z-index:10;
+  background:rgba(255,255,255,0.15);
+  opacity:0;transition:opacity var(--t);
+}
+.tl-seg:hover .resize-handle{opacity:1}
+.resize-handle:hover{background:rgba(255,255,255,0.35)}
+
+/* Current time needle */
+.tl-needle{
+  position:absolute;top:0;bottom:0;z-index:20;
+  width:2px;pointer-events:none;
+  background:rgba(255,255,255,0.85);
+  box-shadow:0 0 10px rgba(255,255,255,0.5);
+  transition:left 10s linear;
+}
+.tl-needle::before{
+  content:'';position:absolute;top:-3px;left:50%;
+  transform:translateX(-50%);
+  width:8px;height:8px;border-radius:50%;
+  background:#fff;box-shadow:0 0 8px rgba(255,255,255,0.8);
+}
+/* Active segment highlight */
+.tl-seg.is-active{
+  animation:activePulse 2s ease-in-out infinite;
+}
+@keyframes activePulse{
+  0%,100%{filter:brightness(1)}
+  50%{filter:brightness(1.25)}
+}
+
+/* Usage row */
+.usage-row{
+  display:flex;align-items:center;gap:10px;margin-top:8px;
+}
+.usage-label{
+  font-family:var(--mono);font-size:0.7rem;color:var(--text-muted);
+  white-space:nowrap;
+}
+.usage-label .hi{color:var(--text-dim)}
+.usage-label .warn{color:var(--yellow)}
+.usage-label .over{color:var(--red)}
+.usage-track{flex:1;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.usage-fill{
+  height:100%;border-radius:2px;
+  background:linear-gradient(to right,var(--accent),var(--purple));
+  transition:width var(--t) var(--ease),background var(--t);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MAIN GRID
+   ══════════════════════════════════════════════════════════════ */
+.main-grid{
+  display:grid;
+  grid-template-columns:1fr 320px;
+  gap:16px;margin-top:18px;
+}
+@media(max-width:960px){.main-grid{grid-template-columns:1fr}}
+
+/* ══════════════════════════════════════════════════════════════
+   CARDS
+   ══════════════════════════════════════════════════════════════ */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+  position:relative;overflow:hidden;
+}
+.card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.card-title{
+  display:flex;align-items:center;gap:7px;
+  font-size:0.82rem;font-weight:700;letter-spacing:-0.01em;
+  color:var(--text-dim);
+}
+.card-title svg{color:var(--accent)}
+
+/* ══════════════════════════════════════════════════════════════
+   ACTIVITY LIST
+   ══════════════════════════════════════════════════════════════ */
+.act-list{
+  display:flex;flex-direction:column;gap:5px;
+  max-height:380px;overflow-y:auto;
+}
+.act-item{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:9px 11px;
+  transition:all var(--t) var(--ease);cursor:grab;
+  animation:fadeSlide .22s var(--ease) forwards;
+}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.act-item:hover{border-color:var(--border2);background:var(--surface3)}
+.act-item.is-active-task{
+  border-color:rgba(79,156,249,0.4);
+  background:rgba(79,156,249,0.05);
+  box-shadow:0 0 0 1px rgba(79,156,249,0.15);
+}
+.act-drag{color:var(--text-muted);cursor:grab;display:flex;align-items:center}
+.act-color{
+  width:9px;height:9px;border-radius:3px;flex-shrink:0;
+}
+.act-info{flex:1;min-width:0}
+.act-name{
+  font-size:0.8rem;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.act-meta{
+  font-family:var(--mono);font-size:0.65rem;
+  color:var(--text-muted);margin-top:1px;
+}
+.act-badge{
+  font-size:0.6rem;font-weight:600;letter-spacing:0.05em;
+  padding:2px 7px;border-radius:10px;
+  background:var(--surface3);color:var(--text-muted);
+  border:1px solid var(--border);white-space:nowrap;
+  flex-shrink:0;
+}
+.act-actions{display:flex;gap:3px}
+.act-btn{
+  width:26px;height:26px;border-radius:var(--radius-xs);
+  background:transparent;border:1px solid transparent;
+  color:var(--text-muted);
+  display:flex;align-items:center;justify-content:center;
+  transition:all var(--t) var(--ease);
+}
+.act-btn:hover{background:var(--surface3);border-color:var(--border);color:var(--text)}
+.act-btn.del:hover{border-color:rgba(248,113,113,.3);color:var(--red);background:rgba(248,113,113,.06)}
+
+/* empty state */
+.empty-state{
+  text-align:center;padding:32px 16px;
+  color:var(--text-muted);font-size:0.8rem;
+}
+.empty-state svg{
+  width:32px;height:32px;margin:0 auto 8px;
+  display:block;color:var(--text-muted);opacity:.4;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ADD FORM
+   ══════════════════════════════════════════════════════════════ */
+.add-section{
+  margin-top:14px;padding-top:14px;
+  border-top:1px solid var(--border);
+}
+.add-grid{
+  display:grid;
+  grid-template-columns:1fr 56px 56px 1fr;
+  gap:7px;margin-top:10px;
+}
+@media(max-width:600px){.add-grid{grid-template-columns:1fr 1fr}}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-label{
+  font-size:0.6rem;font-weight:700;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--text-muted);
+}
+input[type=text],input[type=number],select{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-xs);color:var(--text);
+  font-family:var(--font);font-size:0.8rem;
+  padding:7px 10px;width:100%;outline:none;
+  transition:border-color var(--t);
+  -webkit-appearance:none;appearance:none;
+}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+select option{background:var(--surface2)}
+.add-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:10px}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--radius-sm);
+  font-family:var(--font);font-size:0.76rem;font-weight:700;
+  letter-spacing:0.04em;transition:all var(--t) var(--ease);
+  white-space:nowrap;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  color:#fff;
+}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px);box-shadow:0 4px 16px rgba(79,156,249,.3)}
+.btn-ghost{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface3);color:var(--text)}
+.btn-sm{padding:5px 10px;font-size:0.7rem}
+.btn-icon{padding:7px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);color:var(--text-dim)}
+.btn-icon:hover{background:var(--surface3);color:var(--text)}
+
+/* ══════════════════════════════════════════════════════════════
+   RIGHT SIDEBAR
+   ══════════════════════════════════════════════════════════════ */
+.sidebar{display:flex;flex-direction:column;gap:14px}
+
+/* Pie chart */
+.pie-wrap{
+  position:relative;width:150px;height:150px;
+  margin:0 auto 14px;
+}
+.pie-center{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.pie-val{
+  font-size:1.5rem;font-weight:800;
+  letter-spacing:-0.04em;line-height:1;
+}
+.pie-sub{
+  font-size:0.58rem;font-weight:600;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--text-muted);margin-top:2px;
+}
+.pie-legend{display:flex;flex-direction:column;gap:4px;margin-top:2px}
+.legend-row{
+  display:flex;align-items:center;gap:7px;
+  font-size:0.72rem;
+}
+.legend-pip{
+  width:7px;height:7px;border-radius:2px;flex-shrink:0;
+}
+.legend-name{flex:1;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend-pct{font-family:var(--mono);font-weight:600;font-size:0.68rem}
+
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.sum-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 12px;
+}
+.sum-icon{
+  width:24px;height:24px;margin-bottom:5px;
+  color:var(--accent);
+}
+.sum-val{
+  font-size:1rem;font-weight:800;letter-spacing:-0.03em;line-height:1;
+}
+.sum-label{
+  font-size:0.6rem;font-weight:600;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--text-muted);margin-top:2px;
+}
+
+/* Goals */
+.goal-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 0;
+  border-bottom:1px solid var(--border);
+}
+.goal-item:last-child{border-bottom:none}
+.goal-info{flex:1;min-width:0}
+.goal-name{font-size:0.76rem;font-weight:600;margin-bottom:3px}
+.goal-track{height:3px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.goal-fill{height:100%;border-radius:2px;transition:width .4s var(--ease)}
+.goal-stat{
+  font-family:var(--mono);font-size:0.65rem;
+  color:var(--text-muted);white-space:nowrap;
+}
+.goal-stat.met{color:var(--green)}
+
+/* Smart suggestions */
+.suggestion-list{display:flex;flex-direction:column;gap:6px}
+.suggestion{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:0.76rem;color:var(--text-dim);
+  padding:8px 10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  line-height:1.4;
+}
+.suggestion svg{flex-shrink:0;margin-top:1px}
+.suggestion.warn svg{color:var(--yellow)}
+.suggestion.info svg{color:var(--cyan)}
+.suggestion.good svg{color:var(--green)}
+
+/* ══════════════════════════════════════════════════════════════
+   TABS (Weekly Analytics)
+   ══════════════════════════════════════════════════════════════ */
+.view-tabs{
+  display:flex;gap:3px;
+  background:var(--surface2);padding:3px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);
+  margin-bottom:16px;
+}
+.view-tab{
+  flex:1;padding:6px 10px;border-radius:calc(var(--radius-sm) - 2px);
+  font-size:0.72rem;font-weight:600;
+  color:var(--text-muted);background:transparent;
+  transition:all var(--t) var(--ease);text-align:center;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.view-tab.active{
+  background:var(--surface);color:var(--text);
+  box-shadow:var(--shadow-sm);
+}
+.view-tab:hover:not(.active){color:var(--text-dim)}
+
+/* Views */
+.view{display:none}
+.view.active{display:block}
+
+/* Weekly analytics */
+.weekly-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+@media(max-width:600px){.weekly-stats{grid-template-columns:repeat(2,1fr)}}
+.weekly-stat{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 12px;
+}
+.ws-val{
+  font-size:1.1rem;font-weight:800;letter-spacing:-0.03em;
+}
+.ws-label{font-size:0.62rem;color:var(--text-muted);margin-top:2px}
+.weekly-bars{display:flex;flex-direction:column;gap:8px}
+.wday-row{display:flex;align-items:center;gap:10px;font-size:0.73rem}
+.wday-name{width:32px;color:var(--text-muted);font-weight:600;flex-shrink:0}
+.wday-bar-wrap{flex:1;height:20px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative}
+.wday-bar{height:100%;border-radius:4px;transition:width .5s var(--ease);position:relative}
+.wday-hr{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:0.62rem;color:rgba(255,255,255,0.7);font-weight:600;
+}
+
+/* Templates */
+.template-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.template-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  cursor:pointer;transition:all var(--t) var(--ease);
+}
+.template-card:hover{border-color:var(--border2);background:var(--surface3)}
+.tpl-name{font-size:0.78rem;font-weight:700;margin-bottom:2px}
+.tpl-meta{font-size:0.65rem;color:var(--text-muted)}
+.tpl-dot{width:8px;height:8px;border-radius:2px;float:right;margin-top:3px}
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL
+   ══════════════════════════════════════════════════════════════ */
+.overlay{
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,.65);
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity var(--t);
+  padding:16px;
+}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px;
+  width:440px;max-width:100%;
+  box-shadow:var(--shadow);
+  transform:scale(.96) translateY(8px);
+  transition:transform var(--t) var(--ease);
+}
+.overlay.open .modal{transform:scale(1) translateY(0)}
+.modal-title{
+  font-size:1rem;font-weight:800;letter-spacing:-0.03em;
+  margin-bottom:18px;display:flex;align-items:center;gap:8px;
+}
+.modal-title svg{color:var(--accent)}
+.modal-grid{display:flex;flex-direction:column;gap:10px}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
+/* ══════════════════════════════════════════════════════════════
+   EXPORT / NOTIFICATION / GOAL panels
+   ══════════════════════════════════════════════════════════════ */
+.panel-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+
+/* Tooltip */
+.tt{
+  position:fixed;z-index:9999;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:9px 12px;
+  pointer-events:none;
+  opacity:0;transform:translateY(4px);
+  transition:opacity .12s,transform .12s;
+  min-width:140px;box-shadow:var(--shadow);
+}
+.tt.show{opacity:1;transform:translateY(0)}
+.tt-name{font-size:0.82rem;font-weight:700;margin-bottom:4px}
+.tt-row{font-family:var(--mono);font-size:0.68rem;color:var(--text-muted)}
+.tt-color{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+
+/* Warnings */
+.warn-bar{
+  display:none;align-items:center;gap:8px;
+  background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);
+  color:var(--yellow);border-radius:var(--radius-sm);
+  padding:7px 12px;font-size:0.76rem;margin-top:7px;
+}
+.warn-bar.show{display:flex}
+
+/* Notification toast */
+.toast{
+  position:fixed;bottom:20px;right:20px;z-index:9000;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px 16px;
+  box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:10px;
+  font-size:0.8rem;max-width:300px;
+  transform:translateX(120%);
+  transition:transform .3s var(--ease);
+}
+.toast.show{transform:translateX(0)}
+.toast-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+
+/* Color picker row */
+.color-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.color-swatch{
+  width:22px;height:22px;border-radius:5px;cursor:pointer;
+  border:2px solid transparent;transition:all var(--t);
+}
+.color-swatch.sel,.color-swatch:hover{border-color:#fff;transform:scale(1.15)}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════════ */
+@media(max-width:600px){
+  .app{padding:0 12px 40px}
+  .header{padding:14px 0 12px}
+  .brand{font-size:1.1rem}
+  .tl-bar{height:52px}
+  .main-grid{gap:12px}
+  .card{padding:14px}
+  .weekly-stats{grid-template-columns:1fr 1fr}
+  .add-grid{grid-template-columns:1fr 1fr}
+  .template-grid{grid-template-columns:1fr}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCROLLABLE TIMELINE WRAPPER
+   ══════════════════════════════════════════════════════════════ */
+.tl-scroll{
+  overflow-x:auto;
+  overflow-y:hidden;
+  border-radius:16px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+}
+@media(max-width:768px){
+  .tl-bar{min-width:700px}
+}
+
+/* Drag-to-resize visual */
+.tl-seg.resizing{opacity:.8;z-index:30}
+
+/* Productivity score ring */
+.score-ring{
+  width:70px;height:70px;position:relative;
+  flex-shrink:0;
+}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:5}
+.score-ring .bg{stroke:var(--surface3)}
+.score-ring .fg{
+  stroke:var(--accent);stroke-linecap:round;
+  transition:stroke-dashoffset .6s var(--ease);
+}
+.score-val{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.9rem;font-weight:800;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══ HEADER ══ -->
+  <header class="header">
+    <div class="header-left">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        Flowday
+      </div>
+      <div class="date-display">
+        <span class="live-dot"></span>
+        <span id="dateDisplay">Monday, March 26, 2026</span>
+        &nbsp;·&nbsp;
+        <span id="tzDisplay">UTC+6</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="clock-pill" id="clockPill">00:00:00</div>
+      <button class="icon-btn" id="realityBtn" title="Reality Mode">
+        <i data-lucide="radio" style="width:16px;height:16px"></i>
+      </button>
+      <button class="icon-btn" id="notifBtn" title="Reminders">
+        <i data-lucide="bell" style="width:16px;height:16px"></i>
+      </button>
+      <button class="icon-btn" id="exportBtn" title="Export">
+        <i data-lucide="download" style="width:16px;height:16px"></i>
+      </button>
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">
+        <i data-lucide="moon" style="width:16px;height:16px" id="themeIcon"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Reality Mode Banner -->
+  <div class="reality-banner" id="realityBanner">
+    <i data-lucide="zap" style="width:15px;height:15px;color:var(--accent);flex-shrink:0"></i>
+    <span class="reality-label">You should be doing:</span>
+    <span class="reality-task" id="realityTask">—</span>
+    <div class="reality-progress" id="realityProgress">
+      <i data-lucide="clock" style="width:12px;height:12px"></i>
+      <span id="realityTime">—</span>
+    </div>
+  </div>
+
+  <!-- ══ DAY NAVIGATION ══ -->
+  <div class="day-nav">
+    <button class="day-nav-arrow" id="prevDayBtn">
+      <i data-lucide="chevron-left" style="width:15px;height:15px"></i>
+    </button>
+    <div class="day-tabs" id="dayTabs"></div>
+    <button class="day-nav-arrow" id="nextDayBtn">
+      <i data-lucide="chevron-right" style="width:15px;height:15px"></i>
+    </button>
+  </div>
+
+  <!-- ══ TIMELINE ══ -->
+  <div class="timeline-section">
+    <div class="section-label">
+      <i data-lucide="bar-chart-2" style="width:11px;height:11px"></i>
+      24-hour timeline
+    </div>
+    <div class="tl-ticks" id="tlTicks"></div>
+    <div class="tl-scroll">
+      <div class="tl-outer" id="tlOuter">
+        <div class="tl-daylight"></div>
+        <div class="tl-bar" id="tlBar">
+          <div class="tl-needle" id="tlNeedle"></div>
+        </div>
+      </div>
+    </div>
+    <div class="usage-row">
+      <span class="usage-label" id="usageLabel">0h used</span>
+      <div class="usage-track"><div class="usage-fill" id="usageFill" style="width:0%"></div></div>
+      <span class="usage-label" id="usageLeft">24h left</span>
+    </div>
+    <div class="warn-bar" id="warnBar">
+      <i data-lucide="alert-triangle" style="width:14px;height:14px"></i>
+      Total exceeds 24 hours — please adjust your schedule.
+    </div>
+  </div>
+
+  <!-- ══ MAIN GRID ══ -->
+  <div class="main-grid">
+
+    <!-- ══ LEFT COLUMN ══ -->
+    <div>
+      <!-- View tabs -->
+      <div class="view-tabs">
+        <button class="view-tab active" data-view="day">
+          <i data-lucide="calendar-days" style="width:13px;height:13px"></i> Day
+        </button>
+        <button class="view-tab" data-view="week">
+          <i data-lucide="bar-chart" style="width:13px;height:13px"></i> Weekly
+        </button>
+        <button class="view-tab" data-view="templates">
+          <i data-lucide="layout-template" style="width:13px;height:13px"></i> Templates
+        </button>
+        <button class="view-tab" data-view="goals">
+          <i data-lucide="target" style="width:13px;height:13px"></i> Goals
+        </button>
+      </div>
+
+      <!-- DAY VIEW -->
+      <div class="view active" id="view-day">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <i data-lucide="list" style="width:14px;height:14px"></i>
+              Activities
+            </div>
+            <div style="display:flex;gap:5px">
+              <button class="btn btn-ghost btn-sm" id="copyYestBtn">
+                <i data-lucide="copy" style="width:12px;height:12px"></i> Copy yesterday
+              </button>
+            </div>
+          </div>
+          <div class="act-list" id="actList"></div>
+          <div id="emptyState" class="empty-state" style="display:none">
+            <i data-lucide="moon" style="width:32px;height:32px"></i>
+            <div style="margin-top:8px">No activities yet — add your first below</div>
+          </div>
+          <!-- Add form -->
+          <div class="add-section">
+            <div class="section-label">
+              <i data-lucide="plus-circle" style="width:11px;height:11px"></i>
+              New Activity
+            </div>
+            <div class="add-grid">
+              <div class="form-field" style="grid-column:1/-1">
+                <label class="form-label">Name</label>
+                <input type="text" id="addName" placeholder="e.g. Deep Work, Morning Run…" maxlength="48"/>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Hours</label>
+                <input type="number" id="addH" min="0" max="24" value="1" placeholder="0"/>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Min</label>
+                <input type="number" id="addM" min="0" max="59" value="0" placeholder="0"/>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Category</label>
+                <select id="addCat"></select>
+              </div>
+            </div>
+            <!-- Color pick -->
+            <div style="margin-top:8px">
+              <div class="form-label" style="margin-bottom:4px">Color</div>
+              <div class="color-row" id="addColorRow"></div>
+            </div>
+            <div class="add-actions">
+              <button class="btn btn-primary" id="addBtn">
+                <i data-lucide="plus" style="width:13px;height:13px"></i> Add Activity
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEKLY VIEW -->
+      <div class="view" id="view-week">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <i data-lucide="trending-up" style="width:14px;height:14px"></i>
+              Weekly Overview
+            </div>
+          </div>
+          <div class="weekly-stats" id="weeklyStats"></div>
+          <div class="section-label" style="margin-bottom:10px">
+            <i data-lucide="bar-chart-2" style="width:11px;height:11px"></i>
+            Hours per day
+          </div>
+          <div class="weekly-bars" id="weeklyBars"></div>
+          <div style="margin-top:16px">
+            <div class="section-label" style="margin-bottom:8px">
+              <i data-lucide="pie-chart" style="width:11px;height:11px"></i>
+              Category breakdown
+            </div>
+            <canvas id="weeklyChart" height="100"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEMPLATES VIEW -->
+      <div class="view" id="view-templates">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <i data-lucide="layout-template" style="width:14px;height:14px"></i>
+              Templates
+            </div>
+            <button class="btn btn-ghost btn-sm" id="saveTemplateBtn">
+              <i data-lucide="save" style="width:12px;height:12px"></i> Save today as template
+            </button>
+          </div>
+          <div class="template-grid" id="templateGrid"></div>
+          <div id="emptyTemplates" class="empty-state" style="display:none;padding:20px">
+            <i data-lucide="layout-template" style="width:24px;height:24px"></i>
+            <div style="margin-top:6px">No templates yet. Save a day as a template!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GOALS VIEW -->
+      <div class="view" id="view-goals">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <i data-lucide="target" style="width:14px;height:14px"></i>
+              Daily Goals
+            </div>
+            <button class="btn btn-ghost btn-sm" id="editGoalsBtn">
+              <i data-lucide="edit-3" style="width:12px;height:12px"></i> Edit
+            </button>
+          </div>
+          <div id="goalsList"></div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <div class="card-title" style="margin-bottom:10px">
+              <i data-lucide="zap" style="width:14px;height:14px"></i>
+              Productivity Score
+            </div>
+            <div style="display:flex;align-items:center;gap:16px">
+              <div class="score-ring">
+                <svg viewBox="0 0 36 36">
+                  <circle class="bg" cx="18" cy="18" r="15.9" stroke-dasharray="100 100"/>
+                  <circle class="fg" cx="18" cy="18" r="15.9" id="scoreCircle" stroke-dasharray="0 100" stroke-dashoffset="0"/>
+                </svg>
+                <div class="score-val" id="scoreVal">0</div>
+              </div>
+              <div>
+                <div style="font-size:.88rem;font-weight:700" id="scoreLabel">—</div>
+                <div style="font-size:.72rem;color:var(--text-muted);margin-top:3px" id="scoreDesc">Complete goals to raise your score</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ RIGHT SIDEBAR ══ -->
+    <div class="sidebar">
+      <!-- Pie chart -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">
+          <i data-lucide="pie-chart" style="width:14px;height:14px"></i>
+          Time Distribution
+        </div>
+        <div class="pie-wrap">
+          <canvas id="pieChart" width="150" height="150"></canvas>
+          <div class="pie-center">
+            <div class="pie-val" id="pieVal">0h</div>
+            <div class="pie-sub">planned</div>
+          </div>
+        </div>
+        <div class="pie-legend" id="pieLegend"></div>
+      </div>
+
+      <!-- Summary -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">
+          <i data-lucide="layout-grid" style="width:14px;height:14px"></i>
+          Category Summary
+        </div>
+        <div class="summary-grid" id="summaryGrid"></div>
+      </div>
+
+      <!-- Smart Suggestions -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px">
+          <i data-lucide="lightbulb" style="width:14px;height:14px"></i>
+          Suggestions
+        </div>
+        <div class="suggestion-list" id="suggestions"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tt" id="tt">
+  <div class="tt-name" id="ttName"></div>
+  <div class="tt-row" id="ttTime"></div>
+  <div class="tt-row" id="ttDur"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toastMsg">Saved!</span>
+</div>
+
+<!-- Edit Modal -->
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <div class="modal-title">
+      <i data-lucide="edit-3" style="width:18px;height:18px"></i>
+      Edit Activity
+    </div>
+    <div class="modal-grid">
+      <div class="form-field">
+        <label class="form-label">Name</label>
+        <input type="text" id="eName" maxlength="48"/>
+      </div>
+      <div class="modal-row">
+        <div class="form-field">
+          <label class="form-label">Hours</label>
+          <input type="number" id="eH" min="0" max="24"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Minutes</label>
+          <input type="number" id="eM" min="0" max="59"/>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Category</label>
+        <select id="eCat"></select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Color</label>
+        <div class="color-row" id="editColorRow"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="eCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="eSaveBtn">
+        <i data-lucide="check" style="width:13px;height:13px"></i> Save
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Goals Modal -->
+<div class="overlay" id="goalsOverlay">
+  <div class="modal">
+    <div class="modal-title">
+      <i data-lucide="target" style="width:18px;height:18px"></i>
+      Set Daily Goals
+    </div>
+    <div class="modal-grid" id="goalsModalGrid"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="gCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="gSaveBtn">
+        <i data-lucide="check" style="width:13px;height:13px"></i> Save Goals
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Name Modal -->
+<div class="overlay" id="tplOverlay">
+  <div class="modal" style="width:340px">
+    <div class="modal-title">
+      <i data-lucide="save" style="width:18px;height:18px"></i>
+      Save Template
+    </div>
+    <div class="form-field">
+      <label class="form-label">Template Name</label>
+      <input type="text" id="tplName" placeholder="e.g. Gym Day, Study Day…" maxlength="32"/>
+    </div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-ghost" id="tplCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="tplSaveBtn">
+        <i data-lucide="check" style="width:13px;height:13px"></i> Save
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="overlay" id="exportOverlay">
+  <div class="modal" style="width:360px">
+    <div class="modal-title">
+      <i data-lucide="download" style="width:18px;height:18px"></i>
+      Export / Import
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-ghost" id="exportJsonBtn" style="justify-content:flex-start;gap:10px">
+        <i data-lucide="file-json" style="width:15px;height:15px;color:var(--accent)"></i>
+        Export all routines as JSON
+      </button>
+      <button class="btn btn-ghost" id="importJsonBtn" style="justify-content:flex-start;gap:10px">
+        <i data-lucide="upload" style="width:15px;height:15px;color:var(--purple)"></i>
+        Import from JSON
+      </button>
+      <input type="file" id="importFile" accept=".json" style="display:none"/>
+      <div style="height:1px;background:var(--border);margin:4px 0"></div>
+      <button class="btn btn-ghost" id="clearAllBtn" style="justify-content:flex-start;gap:10px;color:var(--red)">
+        <i data-lucide="trash-2" style="width:15px;height:15px"></i>
+        Clear all data
+      </button>
+    </div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-ghost" id="exportCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   FLOWDAY — Main Application
+   ══════════════════════════════════════════════════════════════ */
+
+// ── Constants ────────────────────────────────────────────────
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const TODAY_NAME = (() => {
+  const d = new Date().getDay(); // 0=Sun
+  const map = [6,0,1,2,3,4,5]; // Sun=6, Mon=0 ...
+  return DAYS[map[d]];
+})();
+
+const CAT_COLORS = {
+  sleep:'#6366f1', work:'#3b82f6', study:'#3b82f6',
+  fitness:'#10b981', leisure:'#f59e0b', food:'#f97316',
+  social:'#ec4899', travel:'#14b8a6', grocery:'#84cc16',
+  cooking:'#f97316', laundry:'#8b5cf6', selfcare:'#db2777',
+  custom:'#94a3b8', other:'#94a3b8'
+};
+
+const CATEGORIES = [
+  {v:'sleep',   l:'Sleep'},
+  {v:'work',    l:'Work / Study'},
+  {v:'fitness', l:'Fitness'},
+  {v:'leisure', l:'Leisure'},
+  {v:'food',    l:'Food & Drink'},
+  {v:'social',  l:'Social'},
+  {v:'travel',  l:'Travel'},
+  {v:'grocery', l:'Grocery'},
+  {v:'cooking', l:'Cooking'},
+  {v:'laundry', l:'Laundry'},
+  {v:'selfcare',l:'Self-care'},
+  {v:'other',   l:'Other'},
+  {v:'custom',  l:'Custom…'},
+];
+
+const PALETTE = [
+  '#6366f1','#3b82f6','#10b981','#f59e0b','#f97316',
+  '#ec4899','#14b8a6','#84cc16','#8b5cf6','#ef4444',
+  '#22d3ee','#a78bfa','#34d399','#fb923c','#f472b6',
+  '#38bdf8',
+];
+
+const SUMMARY_CATS = [
+  {key:'sleep',   label:'Sleep',   icon:'moon'},
+  {key:'work',    label:'Work',    icon:'briefcase'},
+  {key:'fitness', label:'Fitness', icon:'activity'},
+  {key:'leisure', label:'Leisure', icon:'gamepad-2'},
+  {key:'food',    label:'Food',    icon:'utensils'},
+  {key:'social',  label:'Social',  icon:'users'},
+];
+
+// ── State ─────────────────────────────────────────────────────
+let routines   = {}; // { Monday: [...], ... }
+let templates  = []; // [{ name, activities }]
+let goals      = { sleep:8, work:8, fitness:1 }; // hours
+let activeDay  = TODAY_NAME;
+let editingId  = null;
+let addColor   = PALETTE[0];
+let editColor  = PALETTE[0];
+let realityOn  = false;
+let dragSrc    = null;
+let pieInst    = null;
+let weeklyInst = null;
+let colorIndex = 0;
+// Resize state
+let resizeSeg  = null, resizeStartX = 0, resizeStartMin = 0;
+
+// ── Helpers ───────────────────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2,10);
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+
+function fmtMins(m) {
+  if (!m) return '0m';
+  const h = Math.floor(m/60), min = m%60;
+  if (h && min) return `${h}h ${min}m`;
+  return h ? `${h}h` : `${min}m`;
+}
+function fmtTime(totalM) {
+  const h = Math.floor(totalM/60)%24, m = totalM%60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+function totalMins(day) {
+  return (routines[day]||[]).reduce((s,a)=>s+a.minutes,0);
+}
+function nextColor() {
+  const c = PALETTE[colorIndex % PALETTE.length];
+  colorIndex = (colorIndex+1) % PALETTE.length;
+  return c;
+}
+function catColor(cat){ return CAT_COLORS[cat] || '#94a3b8' }
+
+// ── Storage ───────────────────────────────────────────────────
+function save() {
+  localStorage.setItem('fd_routines',  JSON.stringify(routines));
+  localStorage.setItem('fd_templates', JSON.stringify(templates));
+  localStorage.setItem('fd_goals',     JSON.stringify(goals));
+  localStorage.setItem('fd_colorIdx',  colorIndex);
+  localStorage.setItem('fd_theme',     document.documentElement.dataset.theme);
+}
+function load() {
+  try {
+    routines   = JSON.parse(localStorage.getItem('fd_routines')  || '{}');
+    templates  = JSON.parse(localStorage.getItem('fd_templates') || '[]');
+    goals      = JSON.parse(localStorage.getItem('fd_goals')     || '{"sleep":8,"work":8,"fitness":1}');
+    colorIndex = parseInt(localStorage.getItem('fd_colorIdx')    || '0');
+    const t    = localStorage.getItem('fd_theme') || 'dark';
+    document.documentElement.dataset.theme = t;
+  } catch(e) {
+    routines = {}; templates = []; goals = {sleep:8,work:8,fitness:1};
+  }
+  // Default sample for today
+  if (!routines[TODAY_NAME] || routines[TODAY_NAME].length === 0) {
+    routines[TODAY_NAME] = [
+      {id:uid(),name:'Sleep',       minutes:450, color:catColor('sleep'),   category:'sleep'},
+      {id:uid(),name:'Morning Prep',minutes:60,  color:catColor('selfcare'),category:'selfcare'},
+      {id:uid(),name:'Work',        minutes:480, color:catColor('work'),    category:'work'},
+      {id:uid(),name:'Lunch',       minutes:60,  color:catColor('food'),    category:'food'},
+      {id:uid(),name:'Gym',         minutes:60,  color:catColor('fitness'), category:'fitness'},
+      {id:uid(),name:'Leisure',     minutes:150, color:catColor('leisure'), category:'leisure'},
+      {id:uid(),name:'Wind Down',   minutes:120, color:catColor('sleep'),   category:'sleep'},
+    ];
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────
+function render() {
+  renderDayTabs();
+  renderTimeline();
+  renderActList();
+  renderPie();
+  renderSummary();
+  renderSuggestions();
+  renderWeekly();
+  renderGoals();
+  renderTemplates();
+  updateUsage();
+  save();
+}
+
+// ── Day Tabs ──────────────────────────────────────────────────
+function renderDayTabs() {
+  const wrap = $('dayTabs');
+  wrap.innerHTML = '';
+  DAYS.forEach(day => {
+    const btn = document.createElement('button');
+    btn.className = 'day-tab' +
+      (day === activeDay ? ' active' : '') +
+      (day === TODAY_NAME ? ' today' : '');
+    const hrs = fmtMins(totalMins(day));
+    btn.innerHTML = `
+      ${day.slice(0,3)}
+      <span class="day-tab-hours">${hrs || '—'}</span>
+      ${day === TODAY_NAME ? '<span class="day-tab-dot"></span>' : ''}
+    `;
+    btn.addEventListener('click', () => { activeDay = day; render(); });
+    wrap.appendChild(btn);
+  });
+}
+
+// ── Timeline ──────────────────────────────────────────────────
+function buildTicks() {
+  const wrap = $('tlTicks');
+  wrap.innerHTML = '';
+  wrap.style.position = 'relative';
+  wrap.style.height = '16px';
+  for (let h = 0; h <= 24; h += 3) {
+    const t = document.createElement('div');
+    t.className = 'tl-tick';
+    t.style.left = `${(h/24)*100}%`;
+    t.textContent = h === 24 ? '24' : String(h).padStart(2,'0');
+    wrap.appendChild(t);
+  }
+}
+
+function renderTimeline() {
+  const bar    = $('tlBar');
+  const needle = $('tlNeedle');
+  bar.innerHTML = '';
+  bar.appendChild(needle);
+
+  const acts  = routines[activeDay] || [];
+  const total = acts.reduce((s,a)=>s+a.minutes,0);
+  const base  = Math.max(total, 1440);
+
+  // Current time in minutes for active detection
+  const now = new Date();
+  const nowM = now.getHours()*60 + now.getMinutes();
+
+  let cursor = 0;
+  acts.forEach((act, idx) => {
+    const pct = (act.minutes / base) * 100;
+    const seg = document.createElement('div');
+    seg.className = 'tl-seg';
+    const isActive = (realityOn && activeDay === TODAY_NAME && nowM >= cursor && nowM < cursor + act.minutes);
+    if (isActive) seg.classList.add('is-active');
+    seg.style.cssText = `width:${pct}%;background:${act.color};`;
+    seg.dataset.idx = idx;
+    seg.dataset.id  = act.id;
+
+    if (pct > 3) {
+      const lbl = document.createElement('span');
+      lbl.className = 'tl-seg-label';
+      lbl.textContent = act.name;
+      seg.appendChild(lbl);
+    }
+
+    // Resize handle
+    const rh = document.createElement('div');
+    rh.className = 'resize-handle';
+    rh.addEventListener('mousedown', e => startResize(e, act, idx));
+    rh.addEventListener('touchstart', e => startResize(e, act, idx), {passive:false});
+    seg.appendChild(rh);
+
+    // Drag reorder
+    seg.draggable = true;
+    seg.addEventListener('dragstart', e => { dragSrc = idx; seg.style.opacity='.4'; e.dataTransfer.effectAllowed='move'; });
+    seg.addEventListener('dragend',   () => { seg.style.opacity=''; dragSrc=null; });
+    seg.addEventListener('dragover',  e => { e.preventDefault(); seg.style.outline='2px dashed rgba(255,255,255,.3)'; });
+    seg.addEventListener('dragleave', () => { seg.style.outline=''; });
+    seg.addEventListener('drop',      e => {
+      e.preventDefault(); seg.style.outline='';
+      if (dragSrc !== null && dragSrc !== idx) {
+        const moved = (routines[activeDay]||[]).splice(dragSrc,1)[0];
+        (routines[activeDay]||[]).splice(idx,0,moved);
+        render();
+      }
+    });
+
+    // Tooltip
+    const startCopy = cursor;
+    seg.addEventListener('mouseenter', e => showTT(e, act, startCopy));
+    seg.addEventListener('mousemove',  moveTooltip);
+    seg.addEventListener('mouseleave', hideTT);
+
+    bar.appendChild(seg);
+    cursor += act.minutes;
+  });
+
+  // Unfilled remainder
+  if (total < 1440) {
+    const rem = document.createElement('div');
+    rem.className = 'tl-seg';
+    rem.style.cssText = `width:${((1440-total)/1440)*100}%;background:var(--surface3);opacity:.4;`;
+    bar.appendChild(rem);
+  }
+
+  updateNeedle();
+}
+
+// ── Resize logic ──────────────────────────────────────────────
+function startResize(e, act, idx) {
+  e.preventDefault(); e.stopPropagation();
+  resizeSeg = act;
+  resizeStartX   = e.touches ? e.touches[0].clientX : e.clientX;
+  resizeStartMin = act.minutes;
+  document.addEventListener('mousemove', doResize);
+  document.addEventListener('mouseup',   endResize);
+  document.addEventListener('touchmove', doResize, {passive:false});
+  document.addEventListener('touchend',  endResize);
+}
+function doResize(e) {
+  if (!resizeSeg) return;
+  const bar   = $('tlBar');
+  const bw    = bar.getBoundingClientRect().width;
+  const px    = (e.touches ? e.touches[0].clientX : e.clientX) - resizeStartX;
+  const delta = Math.round((px / bw) * 1440 / 15) * 15; // snap 15min
+  const newM  = clamp(resizeStartMin + delta, 15, 1440);
+  resizeSeg.minutes = newM;
+  renderTimeline();
+  updateUsage();
+}
+function endResize() {
+  resizeSeg = null;
+  document.removeEventListener('mousemove', doResize);
+  document.removeEventListener('mouseup',   endResize);
+  document.removeEventListener('touchmove', doResize);
+  document.removeEventListener('touchend',  endResize);
+  render();
+}
+
+// ── Needle ────────────────────────────────────────────────────
+function updateNeedle() {
+  const now  = new Date();
+  const pct  = ((now.getHours()*60+now.getMinutes())/1440)*100;
+  $('tlNeedle').style.left = `${pct}%`;
+}
+
+// ── Tooltip ───────────────────────────────────────────────────
+const tt = $('tt');
+function showTT(e, act, startM) {
+  $('ttName').innerHTML = `<span class="tt-color" style="background:${act.color}"></span>${act.name}`;
+  $('ttTime').textContent = `${fmtTime(startM)} → ${fmtTime(startM+act.minutes)}`;
+  $('ttDur').textContent  = `Duration: ${fmtMins(act.minutes)}`;
+  tt.classList.add('show');
+  moveTooltip(e);
+}
+function moveTooltip(e) {
+  const x = e.clientX+14, y = e.clientY-62;
+  tt.style.left = `${Math.min(x, window.innerWidth-170)}px`;
+  tt.style.top  = `${y}px`;
+}
+function hideTT() { tt.classList.remove('show'); }
+
+// ── Usage bar ─────────────────────────────────────────────────
+function updateUsage() {
+  const t   = totalMins(activeDay);
+  const pct = clamp((t/1440)*100,0,100);
+  $('usageFill').style.width = `${pct}%`;
+  const h = (t/60).toFixed(1), left = ((1440-t)/60).toFixed(1);
+
+  if (t > 1440) {
+    $('usageLabel').innerHTML = `<span class="over">${h}h used</span>`;
+    $('usageLeft').innerHTML  = `<span class="over">+${((t-1440)/60).toFixed(1)}h over</span>`;
+    $('usageFill').style.background = 'var(--red)';
+    $('warnBar').classList.add('show');
+  } else if (t > 1380) {
+    $('usageLabel').innerHTML = `<span class="warn">${h}h used</span>`;
+    $('usageLeft').innerHTML  = `<span class="warn">${left}h left</span>`;
+    $('usageFill').style.background = 'var(--yellow)';
+    $('warnBar').classList.remove('show');
+  } else {
+    $('usageLabel').innerHTML = `<span class="hi">${h}h</span> used`;
+    $('usageLeft').innerHTML  = `${left}h left`;
+    $('usageFill').style.background = '';
+    $('warnBar').classList.remove('show');
+  }
+}
+
+// ── Activity List ─────────────────────────────────────────────
+function renderActList() {
+  const list = $('actList');
+  const empty = $('emptyState');
+  list.innerHTML = '';
+  const acts = routines[activeDay] || [];
+
+  if (!acts.length) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  const now = new Date();
+  const nowM = now.getHours()*60 + now.getMinutes();
+  let cursor = 0;
+
+  acts.forEach((act, idx) => {
+    const startStr = fmtTime(cursor);
+    const endStr   = fmtTime(cursor + act.minutes);
+    const isActive = (activeDay === TODAY_NAME && nowM >= cursor && nowM < cursor + act.minutes);
+    cursor += act.minutes;
+
+    const div = document.createElement('div');
+    div.className = 'act-item' + (isActive ? ' is-active-task' : '');
+    div.draggable = true;
+    div.dataset.idx = idx;
+
+    const catLabel = CATEGORIES.find(c=>c.v===act.category)?.l || act.category;
+
+    div.innerHTML = `
+      <div class="act-drag"><i data-lucide="grip-vertical" style="width:13px;height:13px"></i></div>
+      <div class="act-color" style="background:${act.color}"></div>
+      <div class="act-info">
+        <div class="act-name">${act.name}${isActive?'<span style="margin-left:6px;font-size:.6rem;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px;font-weight:700;">NOW</span>':''}</div>
+        <div class="act-meta">${startStr} – ${endStr} · ${fmtMins(act.minutes)}</div>
+      </div>
+      <span class="act-badge">${catLabel}</span>
+      <div class="act-actions">
+        <button class="act-btn edit-b" data-id="${act.id}"><i data-lucide="edit-3" style="width:12px;height:12px"></i></button>
+        <button class="act-btn del del-b" data-id="${act.id}"><i data-lucide="trash-2" style="width:12px;height:12px"></i></button>
+      </div>
+    `;
+
+    // List drag
+    div.addEventListener('dragstart', e => { dragSrc=idx; div.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+    div.addEventListener('dragend',   () => div.classList.remove('dragging'));
+    div.addEventListener('dragover',  e => { e.preventDefault(); div.style.outline='1px dashed var(--border2)'; });
+    div.addEventListener('dragleave', () => div.style.outline='');
+    div.addEventListener('drop',      e => {
+      e.preventDefault(); div.style.outline='';
+      if (dragSrc!==null && dragSrc!==idx) {
+        const moved = (routines[activeDay]||[]).splice(dragSrc,1)[0];
+        (routines[activeDay]||[]).splice(idx,0,moved);
+        render();
+      }
+    });
+
+    list.appendChild(div);
+  });
+
+  lucide.createIcons({nodes:list.querySelectorAll('[data-lucide]')});
+
+  list.querySelectorAll('.edit-b').forEach(b => b.addEventListener('click', () => openEdit(b.dataset.id)));
+  list.querySelectorAll('.del-b').forEach(b  => b.addEventListener('click', () => delAct(b.dataset.id)));
+}
+
+// ── Pie Chart ─────────────────────────────────────────────────
+function renderPie() {
+  const acts  = routines[activeDay] || [];
+  const total = acts.reduce((s,a)=>s+a.minutes,0);
+  $('pieVal').textContent = fmtMins(total);
+
+  if (!pieInst) {
+    const ctx = $('pieChart').getContext('2d');
+    pieInst = new Chart(ctx, {
+      type:'doughnut',
+      data:{labels:[],datasets:[{data:[],backgroundColor:[],borderWidth:0,hoverOffset:5}]},
+      options:{
+        cutout:'65%',responsive:false,
+        animation:{duration:350},
+        plugins:{legend:{display:false},tooltip:{enabled:false}}
+      }
+    });
+  }
+
+  if (!acts.length) {
+    pieInst.data.labels=['Empty'];
+    pieInst.data.datasets[0].data=[1];
+    pieInst.data.datasets[0].backgroundColor=['var(--surface3)'];
+    pieInst.update();
+    $('pieLegend').innerHTML='';
+    return;
+  }
+
+  pieInst.data.labels = acts.map(a=>a.name);
+  pieInst.data.datasets[0].data = acts.map(a=>a.minutes);
+  pieInst.data.datasets[0].backgroundColor = acts.map(a=>a.color);
+  pieInst.update();
+
+  $('pieLegend').innerHTML = acts.slice(0,7).map(a=>{
+    const pct = total>0 ? ((a.minutes/total)*100).toFixed(0) : 0;
+    return `<div class="legend-row">
+      <div class="legend-pip" style="background:${a.color}"></div>
+      <span class="legend-name">${a.name}</span>
+      <span class="legend-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Summary ───────────────────────────────────────────────────
+function renderSummary() {
+  const acts = routines[activeDay] || [];
+  const grid = $('summaryGrid');
+
+  const totals = {};
+  SUMMARY_CATS.forEach(c => { totals[c.key] = 0; });
+  acts.forEach(a => {
+    const cat = a.category;
+    if (totals.hasOwnProperty(cat)) totals[cat] += a.minutes;
+    else if (cat==='study') totals.work = (totals.work||0) + a.minutes;
+  });
+
+  grid.innerHTML = SUMMARY_CATS.map(c=>`
+    <div class="sum-card">
+      <i data-lucide="${c.icon}" class="sum-icon" style="width:18px;height:18px"></i>
+      <div class="sum-val">${fmtMins(totals[c.key]||0)}</div>
+      <div class="sum-label">${c.label}</div>
+    </div>
+  `).join('');
+  lucide.createIcons({nodes:grid.querySelectorAll('[data-lucide]')});
+}
+
+// ── Suggestions ───────────────────────────────────────────────
+function renderSuggestions() {
+  const acts  = routines[activeDay] || [];
+  const total = acts.reduce((s,a)=>s+a.minutes,0);
+  const tips  = [];
+
+  const sleepMins   = acts.filter(a=>a.category==='sleep').reduce((s,a)=>s+a.minutes,0);
+  const workMins    = acts.filter(a=>a.category==='work'||a.category==='study').reduce((s,a)=>s+a.minutes,0);
+  const fitMins     = acts.filter(a=>a.category==='fitness').reduce((s,a)=>s+a.minutes,0);
+  const leisureMins = acts.filter(a=>a.category==='leisure').reduce((s,a)=>s+a.minutes,0);
+
+  if (sleepMins < 360) tips.push({type:'warn', icon:'alert-circle', text:'Sleep is under 6 hours — consider adding more rest time.'});
+  else if (sleepMins >= 480) tips.push({type:'good', icon:'check-circle', text:`Great! You've planned ${fmtMins(sleepMins)} of sleep.`});
+
+  if (workMins > 600) tips.push({type:'warn', icon:'alert-triangle', text:`${fmtMins(workMins)} of work is quite intense — schedule breaks.`});
+  if (fitMins === 0)  tips.push({type:'info',  icon:'activity', text:'No fitness activity today — even 30 minutes helps.'});
+  else tips.push({type:'good', icon:'activity', text:`Fitness: ${fmtMins(fitMins)} — well done!`});
+
+  if (leisureMins > 360) tips.push({type:'warn', icon:'clock', text:`${fmtMins(leisureMins)} of leisure might leave less time for priorities.`});
+  if (total < 1200) tips.push({type:'info', icon:'info', text:`${fmtMins(1440-total)} still unscheduled — finish planning your day.`});
+
+  // Previous day comparison
+  const todayIdx = DAYS.indexOf(activeDay);
+  const prevDay  = DAYS[(todayIdx+6)%7];
+  const prevSleep= (routines[prevDay]||[]).filter(a=>a.category==='sleep').reduce((s,a)=>s+a.minutes,0);
+  if (prevSleep > 0 && sleepMins < prevSleep - 60) {
+    tips.push({type:'warn',icon:'moon',text:`You planned less sleep than ${prevDay} (${fmtMins(prevSleep)}).`});
+  }
+
+  $('suggestions').innerHTML = tips.slice(0,4).map(t=>`
+    <div class="suggestion ${t.type}">
+      <i data-lucide="${t.icon}" style="width:14px;height:14px;flex-shrink:0"></i>
+      ${t.text}
+    </div>
+  `).join('') || `<div class="suggestion info"><i data-lucide="star" style="width:14px;height:14px"></i> Your schedule looks balanced!</div>`;
+  lucide.createIcons({nodes:$('suggestions').querySelectorAll('[data-lucide]')});
+}
+
+// ── Goals ─────────────────────────────────────────────────────
+function renderGoals() {
+  const acts     = routines[activeDay] || [];
+  const sleepH   = acts.filter(a=>a.category==='sleep').reduce((s,a)=>s+a.minutes,0)/60;
+  const workH    = acts.filter(a=>a.category==='work'||a.category==='study').reduce((s,a)=>s+a.minutes,0)/60;
+  const fitH     = acts.filter(a=>a.category==='fitness').reduce((s,a)=>s+a.minutes,0)/60;
+
+  const goalDefs = [
+    {key:'sleep',   label:'Sleep',   icon:'moon',      actual:sleepH,  color:'#6366f1'},
+    {key:'work',    label:'Work',    icon:'briefcase', actual:workH,   color:'#3b82f6'},
+    {key:'fitness', label:'Fitness', icon:'activity',  actual:fitH,    color:'#10b981'},
+  ];
+
+  const list = $('goalsList');
+  list.innerHTML = goalDefs.map(g => {
+    const target = goals[g.key] || 1;
+    const pct    = clamp((g.actual/target)*100,0,100);
+    const met    = g.actual >= target;
+    return `
+      <div class="goal-item">
+        <i data-lucide="${g.icon}" style="width:16px;height:16px;color:${g.color};flex-shrink:0"></i>
+        <div class="goal-info">
+          <div class="goal-name">${g.label}</div>
+          <div class="goal-track">
+            <div class="goal-fill" style="width:${pct}%;background:${g.color}"></div>
+          </div>
+        </div>
+        <span class="goal-stat ${met?'met':''}">${g.actual.toFixed(1)} / ${target}h</span>
+      </div>
+    `;
+  }).join('');
+  lucide.createIcons({nodes:list.querySelectorAll('[data-lucide]')});
+
+  // Productivity score
+  const met    = goalDefs.filter(g => g.actual >= (goals[g.key]||1)).length;
+  const score  = Math.round((met / goalDefs.length) * 100);
+  const circ   = $('scoreCircle');
+  const circum = 2 * Math.PI * 15.9;
+  circ.style.strokeDasharray  = `${(score/100)*circum} ${circum}`;
+  circ.style.stroke = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+  $('scoreVal').textContent = score;
+  $('scoreLabel').textContent = score===100?'Perfect Day!':score>=80?'Great Progress':score>=50?'On Track':'Needs Work';
+  $('scoreDesc').textContent = `${met} of ${goalDefs.length} goals met today`;
+}
+
+// ── Weekly Analytics ──────────────────────────────────────────
+function renderWeekly() {
+  // Stats
+  const allActs  = DAYS.flatMap(d => routines[d]||[]);
+  const totalH   = allActs.reduce((s,a)=>s+a.minutes,0)/60;
+  const avgSleep = DAYS.reduce((s,d)=>{
+    return s + (routines[d]||[]).filter(a=>a.category==='sleep').reduce((ss,a)=>ss+a.minutes,0);
+  },0) / (60 * 7);
+  const prodDays = DAYS.filter(d => {
+    const work = (routines[d]||[]).filter(a=>a.category==='work'||a.category==='study').reduce((s,a)=>s+a.minutes,0)/60;
+    return work >= (goals.work||4);
+  }).length;
+
+  $('weeklyStats').innerHTML = `
+    <div class="weekly-stat"><div class="ws-val">${totalH.toFixed(0)}h</div><div class="ws-label">Total planned</div></div>
+    <div class="weekly-stat"><div class="ws-val">${avgSleep.toFixed(1)}h</div><div class="ws-label">Avg sleep</div></div>
+    <div class="weekly-stat"><div class="ws-val">${prodDays}/7</div><div class="ws-label">Productive days</div></div>
+    <div class="weekly-stat"><div class="ws-val">${Math.round((totalH/(7*24))*100)}%</div><div class="ws-label">Week filled</div></div>
+  `;
+
+  // Bars
+  const maxH = Math.max(...DAYS.map(d => (routines[d]||[]).reduce((s,a)=>s+a.minutes,0)/60), 1);
+  $('weeklyBars').innerHTML = DAYS.map(d => {
+    const h   = (routines[d]||[]).reduce((s,a)=>s+a.minutes,0)/60;
+    const pct = clamp((h/24)*100,0,100);
+    const col = d === TODAY_NAME ? 'var(--accent)' : 'var(--surface3)';
+    return `
+      <div class="wday-row">
+        <span class="wday-name">${d.slice(0,3)}</span>
+        <div class="wday-bar-wrap">
+          <div class="wday-bar" style="width:${pct}%;background:${col}">
+            ${h >= 2 ? `<span class="wday-hr">${h.toFixed(0)}h</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Weekly category chart
+  const catTotals = {};
+  CATEGORIES.slice(0,-1).forEach(c => catTotals[c.v]=0);
+  DAYS.forEach(d => (routines[d]||[]).forEach(a => {
+    if (catTotals.hasOwnProperty(a.category)) catTotals[a.category] += a.minutes/60;
+  }));
+  const sorted = Object.entries(catTotals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+  if (weeklyInst) weeklyInst.destroy();
+  const ctx2 = $('weeklyChart').getContext('2d');
+  weeklyInst = new Chart(ctx2, {
+    type:'bar',
+    data:{
+      labels: sorted.map(([k])=>CATEGORIES.find(c=>c.v===k)?.l||k),
+      datasets:[{
+        data: sorted.map(([,v])=>v.toFixed(1)),
+        backgroundColor: sorted.map(([k])=>catColor(k)+'cc'),
+        borderRadius:4,borderSkipped:false,
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw}h`}}},
+      scales:{
+        x:{ticks:{color:'var(--text-muted)',font:{size:10}},grid:{display:false}},
+        y:{ticks:{color:'var(--text-muted)',font:{size:10}},grid:{color:'var(--border)'}}
+      }
+    }
+  });
+}
+
+// ── Templates ─────────────────────────────────────────────────
+function renderTemplates() {
+  const grid   = $('templateGrid');
+  const empty  = $('emptyTemplates');
+  if (!templates.length) { grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = templates.map((tpl, i) => {
+    const h = tpl.activities.reduce((s,a)=>s+a.minutes,0)/60;
+    return `
+      <div class="template-card" data-tpl="${i}">
+        <div style="display:flex;align-items:flex-start">
+          <div class="tpl-name">${tpl.name}</div>
+          <div class="tpl-dot" style="background:${tpl.activities[0]?.color||'#888'}"></div>
+        </div>
+        <div class="tpl-meta">${tpl.activities.length} activities · ${h.toFixed(0)}h</div>
+        <div style="margin-top:8px;display:flex;gap:5px">
+          <button class="btn btn-ghost btn-sm apply-tpl" data-tpl="${i}" style="flex:1">
+            <i data-lucide="play" style="width:11px;height:11px"></i> Apply
+          </button>
+          <button class="btn btn-ghost btn-sm del-tpl" data-tpl="${i}" style="color:var(--red)">
+            <i data-lucide="x" style="width:11px;height:11px"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  lucide.createIcons({nodes:grid.querySelectorAll('[data-lucide]')});
+  grid.querySelectorAll('.apply-tpl').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    applyTemplate(parseInt(b.dataset.tpl));
+  }));
+  grid.querySelectorAll('.del-tpl').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    templates.splice(parseInt(b.dataset.tpl),1);
+    render();
+    toast('Template deleted');
+  }));
+}
+
+function applyTemplate(idx) {
+  if (!templates[idx]) return;
+  routines[activeDay] = templates[idx].activities.map(a => ({...a, id:uid()}));
+  render();
+  toast(`Template "${templates[idx].name}" applied to ${activeDay}`);
+}
+
+// ── Goals Modal ───────────────────────────────────────────────
+function openGoalsModal() {
+  const grid = $('goalsModalGrid');
+  grid.innerHTML = [
+    {key:'sleep', label:'Sleep target (hours)'},
+    {key:'work',  label:'Work/Study target (hours)'},
+    {key:'fitness',label:'Fitness target (hours)'},
+  ].map(g=>`
+    <div class="form-field">
+      <label class="form-label">${g.label}</label>
+      <input type="number" id="goal_${g.key}" min="0" max="24" value="${goals[g.key]||0}" step="0.5"/>
+    </div>
+  `).join('');
+  $('goalsOverlay').classList.add('open');
+}
+$('editGoalsBtn').addEventListener('click', openGoalsModal);
+$('gCancelBtn').addEventListener('click', () => $('goalsOverlay').classList.remove('open'));
+$('gSaveBtn').addEventListener('click', () => {
+  goals.sleep   = parseFloat($('goal_sleep')?.value)   || 8;
+  goals.work    = parseFloat($('goal_work')?.value)    || 8;
+  goals.fitness = parseFloat($('goal_fitness')?.value) || 1;
+  $('goalsOverlay').classList.remove('open');
+  render();
+  toast('Goals saved!');
+});
+
+// ── Reality Mode ──────────────────────────────────────────────
+function updateReality() {
+  if (!realityOn) {
+    $('realityBanner').classList.remove('show');
+    $('realityBtn').classList.remove('active');
+    return;
+  }
+  $('realityBtn').classList.add('active');
+  $('realityBanner').classList.add('show');
+
+  const acts = routines[activeDay] || [];
+  const now  = new Date();
+  const nowM = now.getHours()*60 + now.getMinutes();
+  let cursor = 0, current = null;
+  for (const a of acts) {
+    if (nowM >= cursor && nowM < cursor + a.minutes) {
+      current = { act: a, start: cursor };
+      break;
+    }
+    cursor += a.minutes;
+  }
+  if (current) {
+    $('realityTask').textContent = current.act.name;
+    const elapsed   = nowM - current.start;
+    const remaining = current.act.minutes - elapsed;
+    $('realityTime').textContent = `${fmtMins(remaining)} remaining`;
+  } else {
+    $('realityTask').textContent = 'Free time';
+    $('realityTime').textContent = '—';
+  }
+}
+
+$('realityBtn').addEventListener('click', () => {
+  realityOn = !realityOn;
+  updateReality();
+  renderTimeline();
+  renderActList();
+});
+
+// ── Add Activity ──────────────────────────────────────────────
+function populateCatSelect(selId, currentVal) {
+  const sel = $(selId);
+  sel.innerHTML = CATEGORIES.map(c=>`<option value="${c.v}">${c.l}</option>`).join('');
+  if (currentVal) sel.value = currentVal;
+}
+
+$('addBtn').addEventListener('click', () => {
+  const name = $('addName').value.trim();
+  let cat  = $('addCat').value;
+  const h  = parseInt($('addH').value)||0;
+  const m  = parseInt($('addM').value)||0;
+  const mins = h*60+m;
+  if (!name) { $('addName').focus(); return; }
+  if (mins <= 0) { $('addH').focus(); return; }
+  if (cat === 'custom') {
+    const cn = prompt('Custom category name:','');
+    if (cn) cat = cn.toLowerCase().replace(/\s+/g,'');
+  }
+  if (!routines[activeDay]) routines[activeDay]=[];
+  routines[activeDay].push({id:uid(),name,minutes:mins,color:addColor,category:cat});
+  $('addName').value = '';
+  $('addH').value = '1';
+  $('addM').value = '0';
+  render();
+  toast('Activity added!');
+});
+$('addName').addEventListener('keydown', e => { if(e.key==='Enter') $('addBtn').click(); });
+
+// ── Delete Activity ───────────────────────────────────────────
+function delAct(id) {
+  routines[activeDay] = (routines[activeDay]||[]).filter(a=>a.id!==id);
+  render();
+}
+
+// ── Edit Modal ────────────────────────────────────────────────
+function openEdit(id) {
+  const act = (routines[activeDay]||[]).find(a=>a.id===id);
+  if (!act) return;
+  editingId = id; editColor = act.color;
+  $('eName').value = act.name;
+  $('eH').value    = Math.floor(act.minutes/60);
+  $('eM').value    = act.minutes%60;
+  populateCatSelect('eCat', act.category);
+  buildColorRow('editColorRow', c => { editColor=c; }, editColor);
+  $('editOverlay').classList.add('open');
+}
+$('eCancelBtn').addEventListener('click', () => { $('editOverlay').classList.remove('open'); editingId=null; });
+$('eSaveBtn').addEventListener('click', () => {
+  if (!editingId) return;
+  const act = (routines[activeDay]||[]).find(a=>a.id===editingId);
+  if (!act) return;
+  let cat = $('eCat').value;
+  if (cat === 'custom') { const cn=prompt('Custom category:',''); if(cn) cat=cn.toLowerCase().replace(/\s+/g,''); }
+  act.name     = $('eName').value.trim() || act.name;
+  act.minutes  = (parseInt($('eH').value)||0)*60 + (parseInt($('eM').value)||0);
+  act.category = cat;
+  act.color    = editColor;
+  $('editOverlay').classList.remove('open');
+  editingId = null;
+  render();
+  toast('Activity updated!');
+});
+$('editOverlay').addEventListener('click', e => {
+  if (e.target===$('editOverlay')) { $('editOverlay').classList.remove('open'); editingId=null; }
+});
+
+// ── Color Swatches ────────────────────────────────────────────
+function buildColorRow(rowId, onPick, selected) {
+  const row = $(rowId);
+  row.innerHTML = PALETTE.map(c => `
+    <div class="color-swatch ${c===selected?'sel':''}" style="background:${c}" data-c="${c}"></div>
+  `).join('');
+  row.querySelectorAll('.color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      row.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('sel'));
+      sw.classList.add('sel');
+      onPick(sw.dataset.c);
+    });
+  });
+}
+
+// ── Copy Yesterday ────────────────────────────────────────────
+$('copyYestBtn').addEventListener('click', () => {
+  const idx  = DAYS.indexOf(activeDay);
+  const prev = DAYS[(idx+6)%7];
+  if (!routines[prev]?.length) { toast('No activities on '+prev); return; }
+  routines[activeDay] = (routines[prev]||[]).map(a=>({...a, id:uid()}));
+  render();
+  toast(`Copied from ${prev}`);
+});
+
+// ── Prev / Next day ───────────────────────────────────────────
+$('prevDayBtn').addEventListener('click', () => {
+  const i = DAYS.indexOf(activeDay);
+  activeDay = DAYS[(i+6)%7];
+  render();
+});
+$('nextDayBtn').addEventListener('click', () => {
+  const i = DAYS.indexOf(activeDay);
+  activeDay = DAYS[(i+1)%7];
+  render();
+});
+
+// ── Templates ─────────────────────────────────────────────────
+$('saveTemplateBtn').addEventListener('click', () => {
+  const acts = routines[activeDay]||[];
+  if (!acts.length) { toast('No activities to save'); return; }
+  $('tplName').value = '';
+  $('tplOverlay').classList.add('open');
+  setTimeout(() => $('tplName').focus(), 100);
+});
+$('tplCancelBtn').addEventListener('click', () => $('tplOverlay').classList.remove('open'));
+$('tplSaveBtn').addEventListener('click', () => {
+  const name = $('tplName').value.trim() || activeDay+' Template';
+  templates.push({ name, activities: (routines[activeDay]||[]).map(a=>({...a})) });
+  $('tplOverlay').classList.remove('open');
+  render();
+  toast(`Template "${name}" saved!`);
+});
+$('tplOverlay').addEventListener('click', e => { if(e.target===$('tplOverlay')) $('tplOverlay').classList.remove('open'); });
+
+// ── Export / Import ───────────────────────────────────────────
+$('exportBtn').addEventListener('click', () => $('exportOverlay').classList.add('open'));
+$('exportCloseBtn').addEventListener('click', () => $('exportOverlay').classList.remove('open'));
+$('exportOverlay').addEventListener('click', e => { if(e.target===$('exportOverlay')) $('exportOverlay').classList.remove('open'); });
+$('exportJsonBtn').addEventListener('click', () => {
+  const data = JSON.stringify({routines,templates,goals}, null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data],{type:'application/json'}));
+  a.download = 'flowday-backup.json';
+  a.click();
+  toast('Exported!');
+});
+$('importJsonBtn').addEventListener('click', () => $('importFile').click());
+$('importFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.routines)  routines   = data.routines;
+      if (data.templates) templates  = data.templates;
+      if (data.goals)     goals      = data.goals;
+      render();
+      toast('Imported successfully!');
+      $('exportOverlay').classList.remove('open');
+    } catch { toast('Invalid file'); }
+  };
+  reader.readAsText(file);
+});
+$('clearAllBtn').addEventListener('click', () => {
+  if (!confirm('Clear all data? This cannot be undone.')) return;
+  routines={}; templates=[]; goals={sleep:8,work:8,fitness:1};
+  render(); $('exportOverlay').classList.remove('open');
+  toast('All data cleared');
+});
+
+// ── Notifications ─────────────────────────────────────────────
+$('notifBtn').addEventListener('click', () => {
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().then(p => {
+      if (p === 'granted') { setupNotifs(); toast('Reminders enabled!'); }
+    });
+  } else if (Notification.permission === 'granted') {
+    toast('Notifications already enabled');
+  } else {
+    toast('Please enable notifications in browser settings');
+  }
+});
+function setupNotifs() {
+  const acts  = routines[activeDay] || [];
+  let cursor  = 0;
+  const now   = new Date();
+  acts.forEach(act => {
+    const startM = cursor;
+    const startH = Math.floor(startM/60), startMin = startM%60;
+    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startMin);
+    const delay = startDate - now;
+    if (delay > 0) {
+      setTimeout(() => {
+        new Notification(`⏰ Flowday: ${act.name}`, {
+          body: `It's time for your ${act.name} (${fmtMins(act.minutes)})`,
+          icon: '',
+        });
+      }, delay);
+    }
+    cursor += act.minutes;
+  });
+}
+
+// ── View Tabs ─────────────────────────────────────────────────
+document.querySelectorAll('.view-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.view-tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    $('view-'+btn.dataset.view).classList.add('active');
+    if (btn.dataset.view==='week') renderWeekly();
+    if (btn.dataset.view==='templates') renderTemplates();
+    if (btn.dataset.view==='goals') renderGoals();
+  });
+});
+
+// ── Theme ─────────────────────────────────────────────────────
+function updateThemeIcon() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  const icon = $('themeIcon');
+  icon.setAttribute('data-lucide', dark ? 'sun' : 'moon');
+  lucide.createIcons({nodes:[icon]});
+}
+$('themeBtn').addEventListener('click', () => {
+  const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+  localStorage.setItem('fd_theme', t);
+  updateThemeIcon();
+});
+
+// ── Clock & Date ──────────────────────────────────────────────
+function startClock() {
+  const pad = n => String(n).padStart(2,'0');
+  const tick = () => {
+    const now = new Date();
+    $('clockPill').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    updateNeedle();
+    if (realityOn) updateReality();
+  };
+  tick(); setInterval(tick, 1000);
+}
+function updateDateDisplay() {
+  const now  = new Date();
+  const opts = {weekday:'long', year:'numeric', month:'long', day:'numeric'};
+  $('dateDisplay').textContent = now.toLocaleDateString('en-US', opts);
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const off = -now.getTimezoneOffset()/60;
+  $('tzDisplay').textContent = `${tz} (UTC${off>=0?'+':''}${off})`;
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  $('toastMsg').textContent = msg;
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2400);
+}
+
+// ── Boot ──────────────────────────────────────────────────────
+function boot() {
+  load();
+  buildTicks();
+  populateCatSelect('addCat');
+  buildColorRow('addColorRow', c => { addColor=c; }, addColor);
+  updateDateDisplay();
+  updateThemeIcon();
+  render();
+  startClock();
+  setInterval(updateNeedle, 15000);
+  lucide.createIcons();
+}
+boot();
+</script>
+</body>
+</html>

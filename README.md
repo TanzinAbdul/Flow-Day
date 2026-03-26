@@ -50,5 +50,5 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/flowday.git
+git clone https://github.com/TanzinAbdul/Flow-Day.git
 cd flowday

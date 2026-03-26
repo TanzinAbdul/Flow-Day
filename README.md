@@ -6,6 +6,12 @@
 
 > A sophisticated daily routine planner that transforms time management into an intuitive, visual experience.
 
+## 🚀 Live Demo
+
+Try Flowday now: **[https://tanzinabdul.github.io/Flow-Day/](https://tanzinabdul.github.io/Flow-Day/)**
+
+No installation required — works directly in your browser!
+
 ## 🌟 Features
 
 ### 📊 Visual Timeline
@@ -39,16 +45,19 @@
 - **Editable goals** for sleep, work, and fitness
 
 ### 💾 Data Management
-- **Local storage persistence**
+- **Local storage persistence** (your data stays in your browser)
 - **JSON import/export** functionality
 - **Browser notification** reminders
 - **Clear all data** option
 
 ## 🚀 Quick Start
 
-### Installation
+### Online (Recommended)
+Simply visit **[https://tanzinabdul.github.io/Flow-Day/](https://tanzinabdul.github.io/Flow-Day/)** and start planning!
+
+### Local Installation
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/TanzinAbdul/Flow-Day.git
-cd flowday
+git clone https://github.com/tanzinabdul/Flow-Day.git
+cd Flow-Day
